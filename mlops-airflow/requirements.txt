@@ -17,7 +17,9 @@ sqlalchemy
 scikit-learn
 matplotlib
 jupyter
+mlflow
 
 # 알림/Slack 연동 등 (선택)
 slack-sdk
 
+bentoml
