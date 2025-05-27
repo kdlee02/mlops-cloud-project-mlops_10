@@ -1,0 +1,23 @@
+# 기본 유틸
+pandas
+numpy
+boto3
+s3fs
+pyarrow
+
+# 데이터 수집
+meteostat
+requests
+
+# DB 연동
+psycopg2-binary
+sqlalchemy
+
+# ML & 분석용
+scikit-learn
+matplotlib
+jupyter
+
+# 알림/Slack 연동 등 (선택)
+slack-sdk
+
