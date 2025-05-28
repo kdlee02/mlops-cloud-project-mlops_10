@@ -4,6 +4,7 @@ import joblib
 from tqdm import tqdm
 from icecream import ic
 from src.utils.utils import model_dir, ensure_dir
+#import bentoml
 
 def train_prophet(train_csv, model_name='prophet_model.pkl'):
     ensure_dir(model_dir())
@@ -23,4 +24,6 @@ def train_prophet(train_csv, model_name='prophet_model.pkl'):
     model_path = model_dir(model_name)
     joblib.dump(model, model_path)
     ic(f"Model saved to {model_path}")
+    # bento_model = bentoml.models.save_model(name="weather_predictor", 
+    # model=model, signatures={"predict": {"batchable": True}})
     return model_path
