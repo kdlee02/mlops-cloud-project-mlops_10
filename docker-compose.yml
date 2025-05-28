@@ -1,0 +1,67 @@
+version: "3.8"
+
+services:
+  postgres:
+    image: postgres:13
+    container_name: postgres
+    environment:
+      POSTGRES_USER: airflow
+      POSTGRES_PASSWORD: airflow
+      POSTGRES_DB: airflow
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  airflow-webserver:
+    build: ./mlops-airflow
+    container_name: airflow-webserver
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      AIRFLOW__CORE__LOAD_EXAMPLES: "False"
+      AIRFLOW__WEBSERVER__EXPOSE_CONFIG: "True"
+      AIRFLOW__WEBSERVER__SECRET_KEY: "super_secret_key_1234"
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./mlops-airflow/dags:/opt/airflow/dags
+      - ./mlops-airflow/datas:/opt/airflow/datas
+      - ./mlops-airflow/plugins:/opt/airflow/plugins
+    command: webserver
+
+  airflow-scheduler:
+    build: ./mlops-airflow
+    container_name: airflow-scheduler
+    depends_on:
+      - postgres
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://airflow:airflow@postgres:5432/airflow
+      AIRFLOW__WEBSERVER__SECRET_KEY: "super_secret_key_1234"
+    volumes:
+      - ./mlops-airflow/dags:/opt/airflow/dags
+      - ./mlops-airflow/datas:/opt/airflow/datas
+      - ./mlops-airflow/plugins:/opt/airflow/plugins
+    command: scheduler
+
+  mlflow-server:
+    build: ./mlops-mlflow
+    container_name: mlflow-server
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlops-mlflow/src:/app/src:ro         # 코드 읽기 전용 마운트
+      - ./mlops-mlflow/log:/app/log        # 로그 및 실험 기록 보존
+    working_dir: /app/src                       # 작업 디렉토리 설정
+    env_file:
+    - .env
+    command: >
+      mlflow ui
+      --backend-store-uri file:/app/log
+      --default-artifact-root s3://mlops-weather/data/model
+      --host 0.0.0.0
+      --port 5000
+
+volumes:
+  postgres_data:
