@@ -15,6 +15,7 @@ PROCESSED_FILE = os.path.join(PROCESSED_PATH, "tokyo_weather_processed.csv")
 def load_and_process_csv():
     df = pd.read_csv(LOCAL_CSV_PATH)
     os.makedirs(PROCESSED_PATH, exist_ok=True)
+    print(f"✅ Loading CSV from {LOCAL_CSV_PATH}")
     df.to_csv(PROCESSED_FILE, index=False)
     print(f"✅ Processed CSV saved to {PROCESSED_FILE}")
 
@@ -26,8 +27,8 @@ def upload_to_s3():
         aws_secret_access_key=Variable.get("AWS_SECRET_ACCESS_KEY"),
         region_name="ap-northeast-2"  # 서울 리전 등으로 설정
     )
-    bucket_name = "wheater-forecast"
-    object_name = "data/tokyo_weather_processed.csv"
+    bucket_name = "mlops-weather"
+    object_name = "data/dataset/tokyo_weather_processed.csv"
 
     with open(PROCESSED_FILE, "rb") as f:
         s3.upload_fileobj(f, bucket_name, object_name)

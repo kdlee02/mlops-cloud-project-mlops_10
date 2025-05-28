@@ -52,13 +52,14 @@ services:
       - "5000:5000"
     volumes:
       - ./mlops-mlflow/src:/app/src:ro         # 코드 읽기 전용 마운트
-      - /app/log                                # 익명 볼륨 (로그)
-      - /app/model                              # 익명 볼륨 (모델)
+      - ./mlops-mlflow/log:/app/log        # 로그 및 실험 기록 보존
     working_dir: /app/src                       # 작업 디렉토리 설정
+    env_file:
+    - .env
     command: >
       mlflow ui
       --backend-store-uri file:/app/log
-      --default-artifact-root /app/model
+      --default-artifact-root s3://mlops-weather/data/model
       --host 0.0.0.0
       --port 5000
 
