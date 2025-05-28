@@ -57,7 +57,7 @@
 
 ## 🛠️ 작품 아키텍처(필수X)
 - #### _아래 이미지는 예시입니다_
-![이미지 설명](![image](https://github.com/user-attachments/assets/51ed4c1d-a269-4dc2-9381-770305ae1c17))
+![이미지 설명](![image]https://excalidraw.com/#room=d0a715382b5805da2e1d,6-ftJYzjx85uGaaDEp3ryw)
 
 <br>
 
