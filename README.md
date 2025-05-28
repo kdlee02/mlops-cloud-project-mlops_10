@@ -57,7 +57,7 @@
 
 ## 🛠️ 작품 아키텍처(필수X)
 - #### _아래 이미지는 예시입니다_
-![이미지 설명](https://miro.medium.com/v2/resize:fit:4800/format:webp/1*ub_u88a4MB5Uj-9Eb60VNA.jpeg)
+![이미지 설명](![image](https://github.com/user-attachments/assets/51ed4c1d-a269-4dc2-9381-770305ae1c17))
 
 <br>
 
