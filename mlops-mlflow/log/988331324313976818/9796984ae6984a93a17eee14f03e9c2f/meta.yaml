@@ -1,0 +1,15 @@
+artifact_uri: s3://mlops-weather/data/model/988331324313976818/9796984ae6984a93a17eee14f03e9c2f/artifacts
+end_time: 1748389748394
+entry_point_name: ''
+experiment_id: '988331324313976818'
+lifecycle_stage: active
+run_id: 9796984ae6984a93a17eee14f03e9c2f
+run_name: righteous-mouse-314
+run_uuid: 9796984ae6984a93a17eee14f03e9c2f
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1748389744889
+status: 3
+tags: []
+user_id: root

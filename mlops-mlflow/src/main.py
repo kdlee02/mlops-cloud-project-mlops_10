@@ -3,12 +3,15 @@ import mlflow.sklearn
 from sklearn.linear_model import LinearRegression
 from sklearn.datasets import make_regression
 from sklearn.metrics import mean_squared_error
+from dotenv import load_dotenv, find_dotenv
+
+load_dotenv(find_dotenv())
 
 # 데이터 생성
 X, y = make_regression(n_samples=100, n_features=1, noise=10, random_state=42)
 
 # MLflow 설정
-mlflow.set_tracking_uri("file:/app/log")  # log (mlruns) 저장 위치
+mlflow.set_tracking_uri("http://localhost:5000")  # log (mlruns) 저장 위치
 mlflow.set_experiment("demo_experiment")  # 실험 이름
 
 # 실험 시작

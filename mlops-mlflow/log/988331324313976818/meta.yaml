@@ -1,0 +1,6 @@
+artifact_location: s3://mlops-weather/data/model/988331324313976818
+creation_time: 1748389544934
+experiment_id: '988331324313976818'
+last_update_time: 1748389544934
+lifecycle_stage: active
+name: demo_experiment

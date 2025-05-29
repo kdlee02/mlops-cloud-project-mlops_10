@@ -23,3 +23,5 @@ mlflow
 slack-sdk
 
 bentoml
+
+load_dotenv
