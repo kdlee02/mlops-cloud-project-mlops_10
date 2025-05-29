@@ -14,6 +14,7 @@ import os
 import mlflow
 from datetime import datetime
 from src.model_select.modelselect import get_best_model
+from serving.service import load_forecast
 
 mlflow.set_tracking_uri("http://13.124.75.142:5000") # set the uri
 
@@ -63,6 +64,9 @@ def run_all(config_path='config.yaml', model_name='prophet'):
     forecast_filename = f"{model_name}_forecast.csv"
     future_csv = predict_future(best_model, last_date, days, save_name=forecast_filename)
 
+    # fast api 서빙
+    load_forecast(future_csv)
+    
     # 6. 옷차림 추천
     rec_path = recommend_clothing(future_csv=forecast_filename)
     ic(f"Pipeline complete, recommendations at {rec_path}")
