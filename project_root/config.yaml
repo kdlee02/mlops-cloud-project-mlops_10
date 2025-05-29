@@ -1,0 +1,12 @@
+prophet:
+  seasonality_mode: 'multiplicative'
+  daily_seasonality: true
+  weekly_seasonality: true
+  yearly_seasonality: true
+  changepoint_prior_scale: 0.01
+  seasonality_prior_scale: 15.0
+  # 필요시 추가 파라미터
+pipeline:
+  years: 3
+  days: 7
+  seed: 0

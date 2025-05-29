@@ -1,4 +1,6 @@
 import pandas as pd
+from tqdm import tqdm
+from icecream import ic
 from src.utils.utils import dataset_dir
 
 def recommend_clothing(future_csv='future_temperature.csv', save_name='clothing_recommendation.csv'):
@@ -24,7 +26,9 @@ def recommend_clothing(future_csv='future_temperature.csv', save_name='clothing_
         else:
             return '두꺼운 코트, 목도리 (매우 추움)'
 
-    daily['clothing'] = daily['avg_temp'].apply(recommend)
+    tqdm.pandas(desc="옷차림 추천 생성")
+    daily['clothing'] = daily['avg_temp'].progress_apply(recommend)
     save_path = f"{dataset_dir()}/{save_name}"
     daily[['date', 'min_temp', 'max_temp', 'avg_temp', 'clothing']].to_csv(save_path, index=False)
+    ic(f"Saved clothing recommendations to {save_path}")
     return save_path
