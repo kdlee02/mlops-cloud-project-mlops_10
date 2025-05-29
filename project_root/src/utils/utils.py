@@ -1,6 +1,7 @@
 import os
 import random
 import numpy as np
+import boto3
 
 def init_seed(seed=0):
     np.random.seed(seed)
@@ -22,3 +23,24 @@ def model_dir(model_name=None):
 def ensure_dir(path):
     if not os.path.exists(path):
         os.makedirs(path)
+
+def upload_to_s3(bucket, bucket_path, key, file_path):
+    s3 = boto3.client(
+        's3',
+        aws_access_key_id=key.get("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=key.get("AWS_SECRET_ACCESS_KEY"),
+        region_name="ap-northeast-2"
+    )
+    with open(file_path, "rb") as f:
+        s3.upload_fileobj(f, bucket, bucket_path)
+
+    print(f"Uploaded {file_path} to {bucket}/{bucket_path}")
+
+def load_from_s3(bucket, bucket_path, key, file_path):
+    s3 = boto3.client(
+        's3',
+        aws_access_key_id=key.get("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=key.get("AWS_SECRET_ACCESS_KEY"),
+        region_name="ap-northeast-2"
+    )
+    s3.download_file(bucket, bucket_path, file_path)

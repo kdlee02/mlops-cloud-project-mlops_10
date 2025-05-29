@@ -28,6 +28,7 @@ services:
       - ./mlops-airflow/dags:/opt/airflow/dags
       - ./mlops-airflow/datas:/opt/airflow/datas
       - ./mlops-airflow/plugins:/opt/airflow/plugins
+      - /var/run/docker.sock:/var/run/docker.sock
     command: webserver
 
   airflow-scheduler:
@@ -43,6 +44,7 @@ services:
       - ./mlops-airflow/dags:/opt/airflow/dags
       - ./mlops-airflow/datas:/opt/airflow/datas
       - ./mlops-airflow/plugins:/opt/airflow/plugins
+      - /var/run/docker.sock:/var/run/docker.sock
     command: scheduler
 
   mlflow-server:
