@@ -19,6 +19,7 @@ def load_and_process_csv():
     print(f"✅ Loading CSV from {LOCAL_CSV_PATH}")
     df = pd.read_csv(LOCAL_CSV_PATH)
     os.makedirs(PROCESSED_PATH, exist_ok=True)
+    print(f"✅ Loading CSV from {LOCAL_CSV_PATH}")
     df.to_csv(PROCESSED_FILE, index=False)
     print(f"✅ Processed CSV saved to {PROCESSED_FILE}")
 

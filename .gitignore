@@ -1,2 +1,4 @@
 mlops-mlflow-test
 .env
+mlops-mlflow/log
+mlops-mlflow/model
