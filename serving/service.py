@@ -1,18 +1,16 @@
-import bentoml
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 import pandas as pd
-from bentoml.io import JSON
+from pathlib import Path
 
-runner = bentoml.sklearn.get("weather_predictor:latest").to_runner()
-svc = bentoml.Service("weather_prediction_service", runners=[runner])
+app = FastAPI()
 
-@svc.api(input=JSON(), output=JSON())
-def predict(input_json:dict) -> dict:
-    try:
-        if not isinstance(input_json, dict):
-            raise ValueError("Input must be a dictionary")
-        
-        df = pd.DataFrame([input_json])
-        prediction = runner.run(df)
-        return {"prediction": prediction[0]}  
-    except Exception as e:
-        return {"error": f"Prediction failed: {str(e)}"}
+# Path to the predicted CSV
+CSV_PATH = Path("your/dataset/dir/future_temperature.csv")  # Update this path accordingly
+
+@app.get("/forecast")
+def get_forecast():
+    if not CSV_PATH.exists():
+        return JSONResponse(status_code=404, content={"error": "Prediction file not found"})
+    df = pd.read_csv(CSV_PATH)
+    return df.to_dict(orient="records")
