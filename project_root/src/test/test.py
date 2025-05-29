@@ -5,8 +5,7 @@ from tqdm import tqdm
 from icecream import ic
 from src.utils.utils import dataset_dir
 
-def predict_future(model_path, last_date, days=7, save_name='future_temperature.csv'):
-    model = joblib.load(model_path)
+def predict_future(model, last_date, days=7, save_name='future_temperature.csv'):
     future_dates = pd.date_range(start=last_date + timedelta(hours=1), periods=days * 24, freq='H')
     future_df = pd.DataFrame({'ds': future_dates})
     ic(f"Predicting {len(future_dates)} future time points")

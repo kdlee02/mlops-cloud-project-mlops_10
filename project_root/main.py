@@ -4,24 +4,34 @@ from icecream import ic
 
 from src.data_loader.data_loader import collect_tokyo_weather
 from src.preprocess.preprocess import load_and_split
-from src.train.train import train_prophet
-from src.evaluate.evaluate import evaluate_prophet
+from src.train.train import train_prophet, train_sarimax
+from src.evaluate.evaluate import evaluate_prophet, evaluate_sarimax
 from src.test.test import predict_future
 from src.recommend.recommend import recommend_clothing
 from src.utils.utils import init_seed
 from src.config_loader import load_config
+import os
+import mlflow
+from datetime import datetime
+from src.model_select.modelselect import get_best_model
 
-# 1. 전체 파이프라인 실행 (config 사용)
-def run_all(config_path='config.yaml'):
+mlflow.set_tracking_uri("http://13.124.75.142:5000") # set the uri
+
+date_str = datetime.now().strftime("%Y-%m-%d")
+experiment_name = f"weather_prediction_{date_str}"
+mlflow.set_experiment(experiment_name)
+
+def run_all(config_path='config.yaml', model_name='prophet'):
     config = load_config(config_path)
     pipeline_cfg = config.get('pipeline', {})
-    prophet_cfg = config.get('prophet', {})
+    model_cfg = config.get(model_name, {})
+
     years = pipeline_cfg.get('years', 3)
     days = pipeline_cfg.get('days', 7)
     seed = pipeline_cfg.get('seed', 0)
 
     init_seed(seed)
-    ic("Pipeline started")
+    ic(f"Pipeline started with model: {model_name}")
 
     # 1. 데이터 수집
     csv_path = collect_tokyo_weather(years=years)
@@ -29,47 +39,44 @@ def run_all(config_path='config.yaml'):
     # 2. 데이터 분할
     train_csv, test_csv = load_and_split()
 
-    # 3. 모델 학습 (Prophet 파라미터 전달)
-    model_path = train_prophet(train_csv, **prophet_cfg)
+    # 3. 모델 학습
+    if model_name == 'prophet':
+        model_path, run_id = train_prophet(train_csv, **model_cfg)
+    elif model_name == 'sarimax':
+        model_path, run_id = train_sarimax(train_csv, **model_cfg)
+    else:
+        raise ValueError(f"Unsupported model: {model_name}")
 
     # 4. 모델 평가
-    metrics = evaluate_prophet(model_path, test_csv)
-    print(f"Model MAE: {metrics['mae']:.2f}, RMSE: {metrics['rmse']:.2f}")
+    if model_name == 'prophet':
+        metrics = evaluate_prophet(model_path, test_csv, run_id)
+    else:
+        metrics = evaluate_sarimax(model_path, test_csv, run_id)
+
+    print(f"[{model_name.upper()}] MAE: {metrics['mae']:.2f}, RMSE: {metrics['rmse']:.2f}")
+
+    # 4.1 모델 선택
+    best_model = get_best_model(experiment_name)
 
     # 5. 미래 예측
     last_date = pd.read_csv(test_csv, parse_dates=['time'])['time'].max()
-    future_csv = predict_future(model_path, last_date, days)
+    forecast_filename = f"{model_name}_forecast.csv"
+    future_csv = predict_future(best_model, last_date, days, save_name=forecast_filename)
 
     # 6. 옷차림 추천
-    rec_path = recommend_clothing(future_csv.split('/')[-1])
+    rec_path = recommend_clothing(future_csv=forecast_filename)
     ic(f"Pipeline complete, recommendations at {rec_path}")
 
-# 2. 각 기능별 Fire 엔트리포인트 제공 (디버깅/단계별 실행)
-def collect_weather_cli(years=3):
-    return collect_tokyo_weather(years=years)
-
-def split_data_cli(csv_name='tokyo_weather.csv', test_size=0.2):
-    return load_and_split(csv_name, test_size)
-
-def train_prophet_cli(train_csv, **kwargs):
-    return train_prophet(train_csv, **kwargs)
-
-def evaluate_prophet_cli(model_path, test_csv):
-    return evaluate_prophet(model_path, test_csv)
-
-def predict_future_cli(model_path, last_date, days=7):
-    return predict_future(model_path, pd.to_datetime(last_date), days)
-
-def recommend_clothing_cli(future_csv='future_temperature.csv'):
-    return recommend_clothing(future_csv)
-
+# Fire CLI
 if __name__ == '__main__':
     fire.Fire({
         'run_all': run_all,
-        'collect_weather': collect_weather_cli,
-        'split_data': split_data_cli,
-        'train_prophet': train_prophet_cli,
-        'evaluate_prophet': evaluate_prophet_cli,
-        'predict_future': predict_future_cli,
-        'recommend_clothing': recommend_clothing_cli,
+        'collect_weather': collect_tokyo_weather,
+        'split_data': load_and_split,
+        'train_prophet': train_prophet,
+        'train_sarimax': train_sarimax,
+        'evaluate_prophet': evaluate_prophet,
+        'evaluate_sarimax': evaluate_sarimax,
+        'predict_future': predict_future,
+        'recommend_clothing': recommend_clothing,
     })
