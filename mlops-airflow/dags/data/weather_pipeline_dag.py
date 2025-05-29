@@ -5,6 +5,9 @@ import pandas as pd
 import os
 import boto3
 from airflow.models import Variable
+from dotenv import load_dotenv, find_dotenv
+
+load_dotenv(find_dotenv())
 
 # 경로 설정
 LOCAL_CSV_PATH = "/opt/airflow/datas/tokyo_weather.csv"
@@ -13,6 +16,7 @@ PROCESSED_FILE = os.path.join(PROCESSED_PATH, "tokyo_weather_processed.csv")
 
 # 전처리 함수 정의
 def load_and_process_csv():
+    print(f"✅ Loading CSV from {LOCAL_CSV_PATH}")
     df = pd.read_csv(LOCAL_CSV_PATH)
     os.makedirs(PROCESSED_PATH, exist_ok=True)
     print(f"✅ Loading CSV from {LOCAL_CSV_PATH}")
