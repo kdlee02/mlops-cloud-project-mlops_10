@@ -10,3 +10,6 @@ icecream>=2.1.0
 mlflow
 boto3
 dotenv
+fastapi
+uvicorn
+statsmodels
