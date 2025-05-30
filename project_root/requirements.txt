@@ -9,3 +9,6 @@ pyyaml>=6.0.0
 icecream>=2.1.0
 mlflow
 boto3
+fastapi
+uvicorn
+statsmodels

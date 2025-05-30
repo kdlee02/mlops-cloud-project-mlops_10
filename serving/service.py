@@ -13,3 +13,13 @@ def load_forecast(path):
             return JSONResponse(status_code=404, content={"error": "Prediction file not found"})
         df = pd.read_csv(CSV_PATH)
         return df.to_dict(orient="records")
+
+def load_clothing(path):
+    app = FastAPI()
+    CSV_PATH = Path(path)
+    @app.get("/clothing")
+    def get_clothing():
+        if not CSV_PATH.exists():
+            return JSONResponse(status_code=404, content={"error": "Clothing file not found"})
+        df = pd.read_csv(CSV_PATH)
+        return df.to_dict(orient="records")
