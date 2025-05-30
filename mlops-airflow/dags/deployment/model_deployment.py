@@ -17,7 +17,6 @@ with DAG(
         api_version='auto',
         auto_remove=True,
         environment={
-            "PYTHONPATH": "/app",
             "AWS_ACCESS_KEY_ID": Variable.get("AWS_ACCESS_KEY_ID"),
             "AWS_SECRET_ACCESS_KEY": Variable.get("AWS_SECRET_ACCESS_KEY"),
             "AWS_DEFAULT_REGION": "ap-northeast-2"
@@ -26,3 +25,36 @@ with DAG(
         docker_url='unix://var/run/docker.sock',
         network_mode='bridge'
     )
+
+    train = DockerOperator(
+        task_id='train_data',
+        image='jbreal/mlops-deployment:latest',
+        api_version='auto',
+        auto_remove=True,
+        environment={
+            "AWS_ACCESS_KEY_ID": Variable.get("AWS_ACCESS_KEY_ID"),
+            "AWS_SECRET_ACCESS_KEY": Variable.get("AWS_SECRET_ACCESS_KEY"),
+            "AWS_DEFAULT_REGION": "ap-northeast-2"
+        },
+        command='python src/train/train_deploy.py',
+        docker_url='unix://var/run/docker.sock',
+        network_mode='bridge'
+    )
+
+    evaluate = DockerOperator(
+        task_id='evaluate_data',
+        image='jbreal/mlops-deployment:latest',
+        api_version='auto',
+        auto_remove=True,
+        environment={
+            "AWS_ACCESS_KEY_ID": Variable.get("AWS_ACCESS_KEY_ID"),
+            "AWS_SECRET_ACCESS_KEY": Variable.get("AWS_SECRET_ACCESS_KEY"),
+            "AWS_DEFAULT_REGION": "ap-northeast-2"
+        },
+        command='python src/evaluate/evaluate_deploy.py',
+        docker_url='unix://var/run/docker.sock',
+        network_mode='bridge'
+    )
+
+    preprocess >> train >> evaluate
+

@@ -23,6 +23,9 @@ def preprocess_tokyo_weather(
      # 로컬에 저장할 임시 경로
     file_path = f"{dataset_dir()}/tokyo_weather.csv"
 
+    if not os.path.exists(dataset_dir()):
+        os.makedirs(dataset_dir())
+
     # S3에서 데이터 다운로드
     load_from_s3(bucket,bucket_path=bucket_path, key=key, file_path=file_path)
     ic(f"Downloaded weather data from {bucket}/{bucket_path} to {file_path}")

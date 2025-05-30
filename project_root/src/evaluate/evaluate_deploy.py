@@ -19,6 +19,13 @@ def evaluate_prophet(
     }
     model_path = f"{model_dir()}/{model_name}"
     testset_path = f"{dataset_dir()}/test.csv"
+
+    if not os.path.exists(model_dir()):
+        os.makedirs(model_dir())
+
+    if not os.path.exists(dataset_dir()):
+        os.makedirs(dataset_dir())
+
     # 모델 로드
     load_from_s3(bucket, bucket_path=f"{bucket_path}/model/train/{model_name}", key=key, file_path=model_path)
     model = joblib.load(model_path)

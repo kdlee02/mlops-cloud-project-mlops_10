@@ -28,6 +28,9 @@ def train_prophet(
     }
 
     file_path = f"{dataset_dir()}/train.csv"
+    
+    if not os.path.exists(dataset_dir()):
+        os.makedirs(dataset_dir())
 
     # 학습 데이터 로드
     load_from_s3(bucket, bucket_path=f"{bucket_path}/dataset/train.csv", key=key, file_path=file_path)
@@ -47,6 +50,9 @@ def train_prophet(
     )
     ic("Fitting Prophet model...")
     model.fit(data)
+
+    if not os.path.exists(model_dir()):
+        os.makedirs(model_dir())
 
     # 모델 저장
     model_path = model_dir(model_name)
