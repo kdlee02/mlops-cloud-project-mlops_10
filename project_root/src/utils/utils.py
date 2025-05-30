@@ -2,6 +2,8 @@ import os
 import random
 import numpy as np
 import boto3
+import re
+from mlflow.tracking import MlflowClient
 
 def init_seed(seed=0):
     np.random.seed(seed)
@@ -44,3 +46,28 @@ def load_from_s3(bucket, bucket_path, key, file_path):
         region_name="ap-northeast-2"
     )
     s3.download_file(bucket, bucket_path, file_path)
+
+    from mlflow.tracking import MlflowClient
+import re
+
+def get_next_deployment_experiment_name(base_name="deployment"):
+    client = MlflowClient()
+    experiments = client.list_experiments()
+
+    # 정규식으로 'deployment-N' 패턴 추출
+    pattern = re.compile(f"^{base_name}-(\\d+)$")
+    max_id = 0
+    found = False
+
+    for exp in experiments:
+        match = pattern.match(exp.name)
+        if match:
+            found = True
+            num = int(match.group(1))
+            max_id = max(max_id, num)
+
+    if not found:
+        return f"{base_name}-1"
+    else:
+        return f"{base_name}-{max_id + 1}"
+
