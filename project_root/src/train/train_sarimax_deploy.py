@@ -4,8 +4,9 @@ import joblib
 from tqdm import tqdm
 from icecream import ic
 from src.utils.utils import model_dir, ensure_dir, load_from_s3, upload_to_s3, dataset_dir, project_path
+from statsmodels.tsa.statespace.sarimax import SARIMAX
 import mlflow
-
+from mlflow import MlflowClient
 import fire
 import os
 import boto3
@@ -32,7 +33,7 @@ def train_sarimax(
     experiment = client.get_experiment_by_name(os.getenv("MLFLOW_EXPERIMENT_NAME"))
 
     if experiment is None:
-      client.create_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME"))
+      client.create_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME"), artifact_location=artifact_location)
 
     mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME"))
 
@@ -72,7 +73,7 @@ def train_sarimax(
       
       ic("Fitting SARIMAX model...")
       results = model.fit(disp=False)
-
+      ic("results: ", results.summary())
       if not os.path.exists(model_dir()):
           os.makedirs(model_dir())
 
@@ -90,7 +91,7 @@ def train_sarimax(
       with open(f"{project_path()}/run_id_sarimax.txt", "w") as f:
         f.write(run_id)
 
-      upload_to_s3(bucket, bucket_path=artifact_location, key=key, file_path=f"{project_path()}/run_id_sarimax.txt")
+      upload_to_s3(bucket, bucket_path=f"data/deploy_volume/model/{os.getenv('MLFLOW_EXPERIMENT_NAME')}/run_id_sarimax.txt", key=key, file_path=f"{project_path()}/run_id_sarimax.txt")
 
 
 if __name__ == "__main__":

@@ -20,7 +20,7 @@ def evaluate_prophet(
       "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
     }
 
-    run_id_path = f"{project_path()}/run_id.txt"
+    run_id_path = f"{project_path()}/run_id_prophet.txt"
     model_path = f"{model_dir()}/{model_name}"
     testset_path = f"{dataset_dir()}/test.csv"
 
@@ -30,7 +30,8 @@ def evaluate_prophet(
     if not os.path.exists(dataset_dir()):
         os.makedirs(dataset_dir())
 
-    #s3에서 모델 등록된 위치 찾기    
+    #s3에서 모델 등록된 위치 찾기
+    load_from_s3(bucket, bucket_path=f"{bucket_path}/model", key=key, file_path=testset_path)
     artifact_location = f"{os.getenv('MLFLOW_ARTIFACT_LOCATION')}/{os.getenv('MLFLOW_EXPERIMENT_NAME')}"
     load_from_s3(bucket, bucket_path=f"{artifact_location}/run_id_prophet.txt", key=key, file_path=run_id_path)
 
