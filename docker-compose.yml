@@ -10,6 +10,8 @@ services:
       POSTGRES_DB: airflow
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - mlops-net
 
   airflow-webserver:
     build: ./mlops-airflow
@@ -30,6 +32,8 @@ services:
       - ./mlops-airflow/plugins:/opt/airflow/plugins
       - /var/run/docker.sock:/var/run/docker.sock
     command: webserver
+    networks:
+      - mlops-net
 
   airflow-scheduler:
     build: ./mlops-airflow
@@ -46,6 +50,8 @@ services:
       - ./mlops-airflow/plugins:/opt/airflow/plugins
       - /var/run/docker.sock:/var/run/docker.sock
     command: scheduler
+    networks:
+      - mlops-net
 
   mlflow-server:
     build: ./mlops-mlflow
@@ -53,17 +59,24 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - ./mlops-mlflow/src:/app/src:ro         # 코드 읽기 전용 마운트
-      - ./mlops-mlflow/log:/app/log        # 로그 및 실험 기록 보존
-    working_dir: /app/src                       # 작업 디렉토리 설정
+      - ./mlops-mlflow/src:/app/src:ro
+      - ./mlops-mlflow/log:/app/log
+    working_dir: /app/src
     env_file:
-    - .env
+      - .env
     command: >
       mlflow ui
       --backend-store-uri file:/app/log
       --default-artifact-root s3://mlops-weather/data/model
       --host 0.0.0.0
       --port 5000
+    networks:
+      - mlops-net
 
 volumes:
   postgres_data:
+
+networks:
+  mlops-net:
+    name: mlops-net
+    driver: bridge

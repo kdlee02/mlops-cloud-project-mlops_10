@@ -27,10 +27,6 @@ def train_prophet(
 
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
 
-    print("EXPERIMENT_NAME:", os.getenv("MLFLOW_EXPERIMENT_NAME"))
-    print("ARTIFACT_LOCATION:", os.getenv("MLFLOW_ARTIFACT_LOCATION"))
-    print("TRACKING_URI:", os.getenv("MLFLOW_TRACKING_URI"))
-
     artifact_location = f"{os.getenv('MLFLOW_ARTIFACT_LOCATION')}/{os.getenv('MLFLOW_EXPERIMENT_NAME')}"
     
     # 실험 이름이 없으면 생성
@@ -38,11 +34,11 @@ def train_prophet(
     experiment = client.get_experiment_by_name(os.getenv("MLFLOW_EXPERIMENT_NAME"))
 
     if experiment is None:
-      client.create_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME"))
+      client.create_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME"), artifact_location=artifact_location)
 
     mlflow.set_experiment(os.getenv("MLFLOW_EXPERIMENT_NAME"))
 
-    
+    print('experiment_name:', os.getenv("MLFLOW_EXPERIMENT_NAME"))
 
     key = {
       "AWS_ACCESS_KEY_ID": os.getenv("AWS_ACCESS_KEY_ID"),
@@ -100,7 +96,7 @@ def train_prophet(
       with open(f"{project_path()}/run_id_prophet.txt", "w") as f:
         f.write(run_id)
 
-      upload_to_s3(bucket, bucket_path=artifact_location, key=key, file_path=f"{project_path()}/run_id_prophet.txt")
+      upload_to_s3(bucket, bucket_path=f"data/deploy_volume/model/{os.getenv('MLFLOW_EXPERIMENT_NAME')}/run_id_prophet.txt", key=key, file_path=f"{project_path()}/run_id_prophet.txt")
 
       
 
