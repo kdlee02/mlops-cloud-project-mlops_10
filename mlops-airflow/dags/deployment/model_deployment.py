@@ -6,6 +6,7 @@ from airflow.providers.docker.operators.docker import DockerOperator
 from airflow.models import Variable
 from datetime import datetime, timedelta
 import mlflow
+from airflow.operators.python_operator import PythonOperator
 
 sys.path.append(
   os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -14,10 +15,12 @@ sys.path.append(
 from plugins.utils import get_next_deployment_experiment_name
 
 
-mlflow_uri = "http://mlflow-server:5000"
-mlflow.set_tracking_uri(mlflow_uri)
+def generate_experiment_name(mlflow_uri,**context):
+    mlflow.set_tracking_uri(mlflow_uri)
+    experiment_name = get_next_deployment_experiment_name()
+    context['ti'].xcom_push(key='experiment_name', value=experiment_name)
 
-experiment_name = get_next_deployment_experiment_name()
+
 
 with DAG(
     dag_id='ml_pipeline',
@@ -27,12 +30,20 @@ with DAG(
     tags=['mlops', 's3'],
 ) as dag:
 
+    mlflow_uri = "http://mlflow-server:5000"
+
+    experiment_name = PythonOperator(
+        task_id='generate_experiment_name',
+        python_callable=generate_experiment_name,
+        provide_context=True,
+        op_kwargs={'mlflow_uri': mlflow_uri}
+    )
+
     COMMON_ENV = {
       "AWS_ACCESS_KEY_ID": Variable.get("AWS_ACCESS_KEY_ID"),
       "AWS_SECRET_ACCESS_KEY": Variable.get("AWS_SECRET_ACCESS_KEY"),
       "AWS_DEFAULT_REGION": "ap-northeast-2",
       "MLFLOW_TRACKING_URI": mlflow_uri,
-      "MLFLOW_EXPERIMENT_NAME": experiment_name,
       "MLFLOW_ARTIFACT_LOCATION": f"s3://mlops-weather/data/deploy_volume/model",
     }
     
@@ -41,7 +52,10 @@ with DAG(
         image='jbreal/mlops-deployment:latest',
         api_version='auto',
         auto_remove=True,
-        environment=COMMON_ENV,
+        environment={
+          **COMMON_ENV,
+          "MLFLOW_EXPERIMENT_NAME": "{{ ti.xcom_pull(task_ids='generate_experiment_name', key='experiment_name') }}"
+        },
         command='python src/preprocess/preprocess_deploy.py',
         docker_url='unix://var/run/docker.sock',
         network_mode='mlops-net'
@@ -52,7 +66,10 @@ with DAG(
         image='jbreal/mlops-deployment:latest',
         api_version='auto',
         auto_remove=True,
-        environment=COMMON_ENV,
+        environment={
+          **COMMON_ENV,
+          "MLFLOW_EXPERIMENT_NAME": "{{ ti.xcom_pull(task_ids='generate_experiment_name', key='experiment_name') }}"
+        },
         command='python src/train/train_prophet_deploy.py',
         docker_url='unix://var/run/docker.sock',
         network_mode='mlops-net'
@@ -63,10 +80,14 @@ with DAG(
         image='jbreal/mlops-deployment:latest',
         api_version='auto',
         auto_remove=True,
-        environment=COMMON_ENV,
+        environment={
+          **COMMON_ENV,
+          "MLFLOW_EXPERIMENT_NAME": "{{ ti.xcom_pull(task_ids='generate_experiment_name', key='experiment_name') }}"
+        },
         command='python src/train/train_sarimax_deploy.py',
         docker_url='unix://var/run/docker.sock',
-        network_mode='mlops-net'
+        network_mode='mlops-net',
+        mem_limit='3g'
     )
 
     evaluate_prophet = DockerOperator(
@@ -74,7 +95,10 @@ with DAG(
         image='jbreal/mlops-deployment:latest',
         api_version='auto',
         auto_remove=True,
-        environment=COMMON_ENV,
+        environment={
+          **COMMON_ENV,
+          "MLFLOW_EXPERIMENT_NAME": "{{ ti.xcom_pull(task_ids='generate_experiment_name', key='experiment_name') }}"
+        },
         command='python src/evaluate/evaluate_prophet_deploy.py',
         docker_url='unix://var/run/docker.sock',
         network_mode='mlops-net'
@@ -85,12 +109,29 @@ with DAG(
         image='jbreal/mlops-deployment:latest',
         api_version='auto',
         auto_remove=True,
-        environment=COMMON_ENV,
+        environment={
+          **COMMON_ENV,
+          "MLFLOW_EXPERIMENT_NAME": "{{ ti.xcom_pull(task_ids='generate_experiment_name', key='experiment_name') }}"
+        },
         command='python src/evaluate/evaluate_sarimax_deploy.py',
         docker_url='unix://var/run/docker.sock',
         network_mode='mlops-net'
     )
 
-    preprocess >> train_prophet >> evaluate_prophet
-    preprocess >> train_sarimax >> evaluate_sarimax
+    model_select = DockerOperator(
+        task_id='model_select',
+        image='jbreal/mlops-deployment:latest',
+        api_version='auto',
+        auto_remove=True,
+        environment={
+          **COMMON_ENV,
+          "MLFLOW_EXPERIMENT_NAME": "{{ ti.xcom_pull(task_ids='generate_experiment_name', key='experiment_name') }}"
+        },
+        command='python src/model_select/modelselect_deploy.py',
+        docker_url='unix://var/run/docker.sock',
+        network_mode='mlops-net'
+    )
+
+    experiment_name >> preprocess >> train_prophet >> evaluate_prophet >> model_select
+    experiment_name >> preprocess >> train_sarimax >> evaluate_sarimax >> model_select
 

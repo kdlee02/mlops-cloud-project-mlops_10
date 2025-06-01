@@ -5,7 +5,7 @@ from icecream import ic
 import fire
 import os
 import boto3
-from src.utils.utils import model_dir, ensure_dir, load_from_s3, upload_to_s3, dataset_dir
+from src.utils.utils import model_dir, ensure_dir, load_from_s3, upload_to_s3, dataset_dir, project_path
 import numpy as np
 import mlflow
 
@@ -31,17 +31,23 @@ def evaluate_prophet(
         os.makedirs(dataset_dir())
 
     #s3에서 모델 등록된 위치 찾기
-    load_from_s3(bucket, bucket_path=f"{bucket_path}/model", key=key, file_path=testset_path)
-    artifact_location = f"{os.getenv('MLFLOW_ARTIFACT_LOCATION')}/{os.getenv('MLFLOW_EXPERIMENT_NAME')}"
-    load_from_s3(bucket, bucket_path=f"{artifact_location}/run_id_prophet.txt", key=key, file_path=run_id_path)
-
+    run_id_bucket_path = f"{bucket_path}/model/{os.getenv('MLFLOW_EXPERIMENT_NAME')}/run_id_prophet.txt"
+    ic(f"run_id_bucket_path: {run_id_bucket_path}")
+    load_from_s3(
+      bucket, 
+      bucket_path=run_id_bucket_path, 
+      key=key, 
+      file_path=run_id_path
+    )
+    print("run_id_downloaded")
     with open(run_id_path, "r") as f:
       run_id = f.read()
 
-    bucket_model_path = f"{artifact_location}/{run_id}/artifacts/{model_name}"
-
+    ic(f"run_id: {run_id}")
     # 모델 로드
-    load_from_s3(bucket, bucket_path=bucket_model_path, key=key, file_path=model_path)
+    model_bucket_path = f"{bucket_path}/model/{os.getenv('MLFLOW_EXPERIMENT_NAME')}/{run_id}/artifacts/{model_name}"
+    load_from_s3(bucket, bucket_path=model_bucket_path, key=key, file_path=model_path)
+
     model = joblib.load(model_path)
     
     # 테스트 데이터 로드
@@ -56,7 +62,9 @@ def evaluate_prophet(
 
     ic(f"MAE: {mae}, RMSE: {rmse}")
 
-    with mlflow.start_run(run_id=os.getenv("MLFLOW_RUN_ID")):
+    mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
+
+    with mlflow.start_run(run_id=run_id):
         mlflow.log_metric("mae", mae)
         mlflow.log_metric("rmse", rmse)
     
