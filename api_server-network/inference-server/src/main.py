@@ -1,62 +1,62 @@
 from fastapi import FastAPI
-import mlflow
-import shutil
 import os
-import pickle
 import boto3
-from mlflow import MlflowClient
-from urllib.parse import urlparse
+import joblib
+import pandas as pd
+from datetime import datetime
 
 app = FastAPI()
 
-MODEL_NAME = "Prophet_deploy-v12"
-LOCAL_MODEL_PATH = "/app/model/model.pkl"
-MLFLOW_TRACKING_URI = "http://mlflow-server:5000"
-model = None
+# 🔐 환경 변수 기반
+AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
+AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
+AWS_REGION = "ap-northeast-2"
 
-@app.get("/")
-def hello():
-    return {"message": "hello world 8001"}
+BUCKET_NAME = "mlops-weather"
+MODEL_S3_KEY = "data/deploy_volume/model/train/prophet_model.pkl"
+RESULT_S3_KEY = "data/deploy_volume/result/prediction.csv"
+LOCAL_MODEL_PATH = os.path.join("model", "prophet_model.pkl")
+LOCAL_RESULT_PATH = os.path.join("result", "prediction.csv")
 
-# @app.get("/get_model")
-# def get_latest_model():
-#     try:
-#         mlflow.set_tracking_uri(MLFLOW_TRACKING_URI)
-#         client = MlflowClient()
+os.makedirs("model", exist_ok=True)
+os.makedirs("result", exist_ok=True)
 
-#         latest_versions = client.get_latest_versions(MODEL_NAME, stages=["Production"])
-#         if not latest_versions:
-#             return {"status": "error", "message": "No production model found"}
+s3 = boto3.client(
+    's3',
+    aws_access_key_id=AWS_ACCESS_KEY,
+    aws_secret_access_key=AWS_SECRET_KEY,
+    region_name=AWS_REGION
+)
 
-#         run_id = latest_versions[0].run_id
-#         run_info = client.get_run(run_id).info
-#         artifact_uri = run_info.artifact_uri  # 예: s3://mlops-weather/...
+@app.get("/health")
+def health():
+    return {"status": "ok"}
 
-#         # artifact_uri에서 S3 bucket과 key 추출
-#         parsed = urlparse(artifact_uri)
-#         if parsed.scheme != "s3":
-#             return {"status": "error", "message": f"Unsupported scheme: {parsed.scheme}"}
+@app.get("/run_inference")
+def run_inference():
+    try:
+        # 1. 모델 다운로드
+        s3.download_file(BUCKET_NAME, MODEL_S3_KEY, LOCAL_MODEL_PATH)
 
-#         bucket = parsed.netloc
-#         key_prefix = parsed.path.lstrip("/")  # artifacts 경로
-#         # model_key = os.path.join(key_prefix, "model", "model.pkl")
-#         # local_path = os.path.join("model", "model.pkl")
-#         # os.makedirs("model", exist_ok=True)
+        # 2. 추론
+        model = joblib.load(LOCAL_MODEL_PATH)
+        future = pd.date_range(start=pd.Timestamp.now(), periods=24, freq="H")
+        df_future = pd.DataFrame({"ds": future})
+        forecast = model.predict(df_future)
+        result = forecast[["ds", "yhat"]].copy()
+        result.columns = ["datetime", "pred_temp"]
 
-#         # # S3 다운로드
-#         # s3 = boto3.client("s3",
-#         #     aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-#         #     aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-#         #     region_name="ap-northeast-2"
-#         # )
-#         # s3.download_file(bucket, model_key, local_path)
+        # 3. 로컬 저장
+        result.to_csv(LOCAL_RESULT_PATH, index=False)
 
-#         return {
-#             "status": "ok",
-#             "run_id": run_id,
-#             "local_model_path": run_info
-#         }
+        # 4. 결과 업로드
+        s3.upload_file(LOCAL_RESULT_PATH, BUCKET_NAME, RESULT_S3_KEY)
 
-#     except Exception as e:
-#         return {"status": "error", "message": str(e)}
+        return {
+            "status": "success",
+            "rows": len(result),
+            "s3_result_key": RESULT_S3_KEY
+        }
 
+    except Exception as e:
+        return {"status": "error", "message": str(e)}
