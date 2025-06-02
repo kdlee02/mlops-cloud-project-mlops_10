@@ -2,11 +2,11 @@ FROM python:3.9-slim-buster
 
 WORKDIR /app
 
-# APT 패키지 설치
-COPY requirements/apt.txt .
-RUN apt-get update && \
-    xargs -a apt.txt apt-get install -y && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
+# # APT 패키지 설치
+# COPY requirements/apt.txt .
+# RUN apt-get update && \
+#     xargs -a apt.txt apt-get install -y && \
+#     apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Python 패키지 설치
 COPY requirements/python.txt .
