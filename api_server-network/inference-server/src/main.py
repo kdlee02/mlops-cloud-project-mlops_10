@@ -40,7 +40,7 @@ def run_inference():
 
         # 2. 추론
         model = joblib.load(LOCAL_MODEL_PATH)
-        future = pd.date_range(start=pd.Timestamp.now(), periods=24, freq="H")
+        future = pd.date_range(start=pd.Timestamp.now(), periods=168, freq="H")
         df_future = pd.DataFrame({"ds": future})
         forecast = model.predict(df_future)
         result = forecast[["ds", "yhat"]].copy()
