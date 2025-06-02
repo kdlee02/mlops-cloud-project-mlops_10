@@ -11,6 +11,7 @@ services:
       - ./api-server/src:/app/src  # 코드 공유
     networks:
       - serving-net
+      - mlops-net
     depends_on:
       - inference-server
       - serving-db

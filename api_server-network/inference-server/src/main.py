@@ -2,14 +2,17 @@ from fastapi import FastAPI
 import mlflow
 import shutil
 import os
+import pickle
 import boto3
 from mlflow import MlflowClient
+from urllib.parse import urlparse
 
 app = FastAPI()
 
-# MODEL_NAME = "Prophet_deploy-v12"
-# LOCAL_MODEL_PATH = "/app/model/model.pkl"
-# MLFLOW_TRACKING_URI = "http://mlflow-server:5000"
+MODEL_NAME = "Prophet_deploy-v12"
+LOCAL_MODEL_PATH = "/app/model/model.pkl"
+MLFLOW_TRACKING_URI = "http://mlflow-server:5000"
+model = None
 
 @app.get("/")
 def hello():
@@ -36,22 +39,22 @@ def hello():
 
 #         bucket = parsed.netloc
 #         key_prefix = parsed.path.lstrip("/")  # artifacts 경로
-#         model_key = os.path.join(key_prefix, "model", "model.pkl")
-#         local_path = os.path.join("model", "model.pkl")
-#         os.makedirs("model", exist_ok=True)
+#         # model_key = os.path.join(key_prefix, "model", "model.pkl")
+#         # local_path = os.path.join("model", "model.pkl")
+#         # os.makedirs("model", exist_ok=True)
 
-#         # S3 다운로드
-#         s3 = boto3.client("s3",
-#             aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-#             aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
-#             region_name="ap-northeast-2"
-#         )
-#         s3.download_file(bucket, model_key, local_path)
+#         # # S3 다운로드
+#         # s3 = boto3.client("s3",
+#         #     aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+#         #     aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+#         #     region_name="ap-northeast-2"
+#         # )
+#         # s3.download_file(bucket, model_key, local_path)
 
 #         return {
 #             "status": "ok",
 #             "run_id": run_id,
-#             "local_model_path": local_path
+#             "local_model_path": run_info
 #         }
 
 #     except Exception as e:
