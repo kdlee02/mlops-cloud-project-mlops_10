@@ -57,6 +57,7 @@ def train_prophet(
     data.columns = ['ds', 'y']
     
     with mlflow.start_run() as run:
+      mlflow.log_param("model_type", "Prophet")
       mlflow.log_param("seasonality_mode", seasonality_mode)
       mlflow.log_param("daily_seasonality", daily_seasonality)
       mlflow.log_param("weekly_seasonality", weekly_seasonality)

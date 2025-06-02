@@ -51,11 +51,14 @@ def train_sarimax(
     load_from_s3(bucket, bucket_path=f"{bucket_path}/dataset/train.csv", key=key, file_path=file_path)
     df = pd.read_csv(file_path, parse_dates=['time'])
     df = df.sort_values("time")
-    y = df["temp"].values
+
+    window = 24*365 # 1년
+    y = df["temp"].values[-window:]
 
     ic(f"Training SARIMAX model with order={order} and seasonal_order={seasonal_order}")
     
     with mlflow.start_run() as run:
+      mlflow.log_param("model_type", "SARIMAX")
       mlflow.log_param("order", order)
       mlflow.log_param("seasonal_order", seasonal_order)
       mlflow.log_param("enforce_stationarity", enforce_stationarity)
@@ -68,12 +71,13 @@ def train_sarimax(
         seasonal_order=seasonal_order,
         enforce_stationarity=enforce_stationarity,
         enforce_invertibility=enforce_invertibility,
+        simple_differencing=True,
         **kwargs
       )
       
       ic("Fitting SARIMAX model...")
-      results = model.fit(disp=False)
-      ic("results: ", results.summary())
+      results = model.fit(disp=False, low_memory=True)
+      
       if not os.path.exists(model_dir()):
           os.makedirs(model_dir())
 
