@@ -42,7 +42,7 @@ def evaluate_sarimax(
       run_id = f.read()
 
     ic(f"run_id: {run_id}")
-    bucket_model_path = f"{bucket_path}/model/{os.getenv('MLFLOW_EXPERIMENT_NAME')}/{run_id}/artifacts/{model_name}"
+    bucket_model_path = f"{bucket_path}/model/{os.getenv('MLFLOW_EXPERIMENT_NAME')}/{run_id}/artifacts/model/artifacts/{model_name}"
 
     # 모델 로드
     load_from_s3(bucket, bucket_path=bucket_model_path, key=key, file_path=model_path)

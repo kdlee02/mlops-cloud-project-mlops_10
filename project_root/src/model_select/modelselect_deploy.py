@@ -3,7 +3,7 @@ from mlflow.tracking import MlflowClient
 import fire
 import os
 
-def register_best_model(metric: str = "mse"):
+def register_best_model(metric: str = "mae"):
     # 1. MLflow 환경 설정
     mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
     client = MlflowClient()
@@ -23,7 +23,7 @@ def register_best_model(metric: str = "mse"):
     if not runs:
         raise ValueError("No runs found for best model selection.")
 
-
+    
     best_run = runs[0]
     model_type = best_run.data.params["model_type"]
     model_name = f"{model_type}_{os.getenv('MLFLOW_EXPERIMENT_NAME')}"
