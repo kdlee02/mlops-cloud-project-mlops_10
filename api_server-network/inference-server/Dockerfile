@@ -5,6 +5,8 @@ WORKDIR /app
 # requirements.txt 먼저 복사해서 캐싱
 COPY requirements.txt .
 
+RUN apt-get update && apt-get install -y build-essential
+RUN apt-get install -y curl
 # 패키지 설치
 RUN pip install --upgrade pip && pip install -r requirements.txt
 

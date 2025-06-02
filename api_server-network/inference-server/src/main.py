@@ -4,6 +4,12 @@ import boto3
 import joblib
 import pandas as pd
 from datetime import datetime
+from pydantic import BaseModel
+
+class ModelUploadRequest(BaseModel):
+    exp_name: str
+    run_id: str
+    pkl_file: str
 
 app = FastAPI()
 
@@ -11,12 +17,6 @@ app = FastAPI()
 AWS_ACCESS_KEY = os.getenv("AWS_ACCESS_KEY")
 AWS_SECRET_KEY = os.getenv("AWS_SECRET_KEY")
 AWS_REGION = "ap-northeast-2"
-
-BUCKET_NAME = "mlops-weather"
-MODEL_S3_KEY = "data/deploy_volume/model/train/prophet_model.pkl"
-RESULT_S3_KEY = "data/deploy_volume/result/prediction.csv"
-LOCAL_MODEL_PATH = os.path.join("model", "prophet_model.pkl")
-LOCAL_RESULT_PATH = os.path.join("result", "prediction.csv")
 
 os.makedirs("model", exist_ok=True)
 os.makedirs("result", exist_ok=True)
@@ -32,8 +32,18 @@ s3 = boto3.client(
 def health():
     return {"status": "ok"}
 
-@app.get("/run_inference")
-def run_inference():
+@app.post("/run_inference")
+def run_inference(request: ModelUploadRequest):
+    exp_name = request.exp_name
+    run_id = request.run_id
+    pkl_file = request.pkl_file
+    
+    BUCKET_NAME = "mlops-weather"
+    MODEL_S3_KEY = f"data/deploy_volume/model/{exp_name}/{run_id}/artifacts/model/artifacts/{pkl_file}"
+    LOCAL_MODEL_PATH = os.path.join("model", pkl_file)
+    LOCAL_RESULT_PATH = os.path.join("result", "prediction.csv")
+    RESULT_S3_KEY = "data/deploy_volume/result/prediction.csv"
+
     try:
         # 1. 모델 다운로드
         s3.download_file(BUCKET_NAME, MODEL_S3_KEY, LOCAL_MODEL_PATH)

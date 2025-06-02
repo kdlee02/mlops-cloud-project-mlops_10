@@ -22,14 +22,14 @@ def generate_experiment_name(mlflow_uri,**context):
     context['ti'].xcom_push(key='experiment_name', value=experiment_name)
 
 
-def request_model_loading(**context):
-    api_url = "http://api-server:8000/model_upload"  # 도커 네트워크 상에서 접근 가능
-    res = requests.get(api_url)
+# def request_model_loading(**context):
+#     api_url = "http://api-server:8000/model_upload"  # 도커 네트워크 상에서 접근 가능
+#     res = requests.get(api_url)
     
-    if res.status_code != 200:
-        raise Exception(f"Model load failed: {res.text}")
+#     if res.status_code != 200:
+#         raise Exception(f"Model load failed: {res.text}")
     
-    print("Model load response:", res.json())
+#     print("Model load response:", res.json())
 
 
 
@@ -43,6 +43,7 @@ with DAG(
 ) as dag:
 
     mlflow_uri = "http://mlflow-server:5000"
+    api_url = "http://api-server:8000/model_upload"  # 도커 네트워크 상에서 접근 가능
 
     experiment_name = PythonOperator(
         task_id='generate_experiment_name',
@@ -57,6 +58,7 @@ with DAG(
       "AWS_DEFAULT_REGION": "ap-northeast-2",
       "MLFLOW_TRACKING_URI": mlflow_uri,
       "MLFLOW_ARTIFACT_LOCATION": f"s3://mlops-weather/data/deploy_volume/model",
+      "API_URL": api_url
     }
     
     preprocess = DockerOperator(
@@ -144,13 +146,13 @@ with DAG(
         network_mode='mlops-net'
     )
 
-    request_model_loading = PythonOperator(
-        task_id='request_model_loading',
-        python_callable=request_model_loading,
-        provide_context=True
-    )
+    # request_model_loading = PythonOperator(
+    #     task_id='request_model_loading',
+    #     python_callable=request_model_loading,
+    #     provide_context=True
+    # )
 
 
 
-    experiment_name >> preprocess >> train_prophet >> evaluate_prophet >> model_select >> request_model_loading
-    experiment_name >> preprocess >> train_sarimax >> evaluate_sarimax >> model_select >> request_model_loading
+    experiment_name >> preprocess >> train_prophet >> evaluate_prophet >> model_select
+    experiment_name >> preprocess >> train_sarimax >> evaluate_sarimax >> model_select

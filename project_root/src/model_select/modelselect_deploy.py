@@ -2,6 +2,7 @@ import mlflow
 from mlflow.tracking import MlflowClient
 import fire
 import os
+import requests
 
 def register_best_model(metric: str = "mae"):
     # 1. MLflow 환경 설정
@@ -31,6 +32,10 @@ def register_best_model(metric: str = "mae"):
     print(f"📌 Best run_id: {best_run.info.run_id}")
     print(f"📁 Model URI: {model_uri}")
 
+    artifacts = client.list_artifacts(best_run.info.run_id, path="model/artifacts")
+    pkl_files = [f.path for f in artifacts if f.path.endswith(".pkl")]
+    print(pkl_files[0].split("/")[-1])
+
     # 4. 모델 등록
     result = mlflow.register_model(model_uri=model_uri, name=model_name)
     print(f"✅ Registered model version: {result.version}")
@@ -44,6 +49,19 @@ def register_best_model(metric: str = "mae"):
     )
 
     print(f"🚀 Model {model_name} v{result.version} promoted to Production")
+
+    # 6. API 서버에 모델 등록 요청
+    try:
+        res = requests.post(
+          os.getenv("API_URL"), 
+          json={"exp_name" : os.getenv("MLFLOW_EXPERIMENT_NAME"), "run_id" : best_run.info.run_id, "pkl_file" : pkl_files[0].split("/")[-1]}
+        )
+        res.raise_for_status()
+        print("Model load response:", res.json())
+    except requests.exceptions.RequestException as e:
+        print(f"❌ 모델 업로드 요청 실패: {e}")
+        print(f"🔁 무시하고 계속 진행합니다. exp_name: {os.getenv('MLFLOW_EXPERIMENT_NAME')}, run_id: {best_run.info.run_id}, pkl_file: {pkl_files[0].split('/')[-1]}")
+
 
 if __name__ == "__main__":
     fire.Fire(register_best_model)
