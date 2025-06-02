@@ -4,7 +4,8 @@ import pandas as pd
 import os
 from io import StringIO
 import boto3
-
+import requests
+from fastapi import Request
 
 key1 = os.getenv("AWS_ACCESS_KEY_ID")
 key2 = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -60,3 +61,19 @@ def get_forecast():
 @app.get("/clothing")
 def get_clothing():
     return daily.to_dict(orient="records")
+
+INFERENCE_TRIGGER_URL = "http://inference-server:8001/run_inference"
+
+@app.post("/model_upload")
+def trigger_inference():
+    try:
+        response = requests.post(INFERENCE_TRIGGER_URL)
+        return {
+            "status": response.status_code,
+            "result": response.json()
+        }
+    except requests.exceptions.RequestException as e:
+        return {
+            "status": 500,
+            "error": str(e)
+        }
