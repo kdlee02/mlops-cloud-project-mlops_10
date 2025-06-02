@@ -4,6 +4,7 @@ import joblib
 from tqdm import tqdm
 from icecream import ic
 from src.utils.utils import model_dir, ensure_dir, load_from_s3, upload_to_s3, dataset_dir, project_path
+from src.utils.modelWrapper import SarimaxWrapper
 from statsmodels.tsa.statespace.sarimax import SARIMAX
 import mlflow
 from mlflow import MlflowClient
@@ -84,7 +85,14 @@ def train_sarimax(
       # 모델 s3 버킷에 저장
       model_path = model_dir(model_name)
       joblib.dump(results, model_path)
-      mlflow.log_artifact(model_path)
+      # mlflow.log_artifact(model_path)
+      mlflow.pyfunc.log_model(
+          artifacts={"model": model_path},
+          code_path=["src"],
+          artifact_path="model",  # 꼭 이 이름 써야 Registry에서 인식됨
+          python_model=SarimaxWrapper(),
+          # registered_model_name=f"{os.getenv('MLFLOW_EXPERIMENT_NAME')}_sarimax"  # 생략 가능, 나중에 수동 등록도 가능
+      )
       ic(f"Model saved to {os.getenv('MLFLOW_ARTIFACT_LOCATION')}/{os.getenv('MLFLOW_EXPERIMENT_NAME')}")
 
       #run_id를 다음 컨테이너에서 사용하기 위해 파일로 저장

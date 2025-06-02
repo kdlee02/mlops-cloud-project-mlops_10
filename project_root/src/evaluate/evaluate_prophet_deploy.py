@@ -39,13 +39,12 @@ def evaluate_prophet(
       key=key, 
       file_path=run_id_path
     )
-    print("run_id_downloaded")
     with open(run_id_path, "r") as f:
       run_id = f.read()
 
     ic(f"run_id: {run_id}")
     # 모델 로드
-    model_bucket_path = f"{bucket_path}/model/{os.getenv('MLFLOW_EXPERIMENT_NAME')}/{run_id}/artifacts/{model_name}"
+    model_bucket_path = f"{bucket_path}/model/{os.getenv('MLFLOW_EXPERIMENT_NAME')}/{run_id}/artifacts/model/artifacts/{model_name}"
     load_from_s3(bucket, bucket_path=model_bucket_path, key=key, file_path=model_path)
 
     model = joblib.load(model_path)

@@ -1,0 +1,61 @@
+version: "3.8"
+
+services:
+  api-server:
+    build:
+      context: ./api-server
+    container_name: api-server
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./api-server/src:/app/src  # 코드 공유
+    networks:
+      - serving-net
+    depends_on:
+      - inference-server
+      - serving-db
+    environment:
+      - INFERENCE_URL=http://inference-server:8001
+      - DB_URL=postgresql://user:password@serving-db:5432/serving
+
+  inference-server:
+    build:
+      context: ./inference-server
+    container_name: inference-server
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./inference-server/src:/app/src  # 코드 공유
+    networks:
+      - serving-net
+      - mlops-net
+    environment:
+      - MODEL_PATH=/app/model/model.pkl
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_DEFAULT_REGION}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+
+  serving-db:
+    image: postgres:13
+    container_name: serving-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: serving
+    volumes:
+      - serving-db-data:/var/lib/postgresql/data
+    networks:
+      - serving-net
+    ports:
+      - "5433:5432"  # 호스트 충돌 방지를 위해 5433으로 노출 (원하면 변경 가능)
+
+networks:
+  serving-net:
+    name: serving-net
+    driver: bridge
+  mlops-net:
+    external: true
+
+volumes:
+  serving-db-data:

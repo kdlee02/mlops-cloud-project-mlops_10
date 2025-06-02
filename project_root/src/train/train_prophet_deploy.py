@@ -9,7 +9,9 @@ import fire
 import os
 import boto3
 import datetime
+import mlflow.prophet
 from mlflow import MlflowClient
+from src.utils.modelWrapper import ProphetWrapper
 
 def train_prophet(
     bucket='mlops-weather',
@@ -86,7 +88,15 @@ def train_prophet(
       # 모델 s3 버킷에 저장
       model_path = model_dir(model_name)
       joblib.dump(model, model_path)
-      mlflow.log_artifact(model_path)
+      # mlflow.log_artifact(model_path)
+      # log_model로 저장해야 등록 가능
+      mlflow.pyfunc.log_model(
+          artifacts={"model": model_path},
+          python_model=ProphetWrapper(),
+          code_path=["src"],
+          artifact_path="model",  # 꼭 이 이름 써야 Registry에서 인식됨
+          # registered_model_name=f"{os.getenv('MLFLOW_EXPERIMENT_NAME')}_prophet"  # 생략 가능, 나중에 수동 등록도 가능
+      )
       ic(f"Model saved to {os.getenv('MLFLOW_ARTIFACT_LOCATION')}/{os.getenv('MLFLOW_EXPERIMENT_NAME')}")
 
       #run_id를 다음 컨테이너에서 사용하기 위해 파일로 저장
