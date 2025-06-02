@@ -65,7 +65,7 @@ def get_clothing():
 INFERENCE_TRIGGER_URL = "http://inference-server:8001/run_inference"
 
 @app.post("/model_upload")
-def trigger_inference():
+def model_upload():
     try:
         response = requests.post(INFERENCE_TRIGGER_URL)
         return {
