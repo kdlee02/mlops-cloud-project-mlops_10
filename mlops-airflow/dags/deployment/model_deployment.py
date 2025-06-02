@@ -7,6 +7,7 @@ from airflow.models import Variable
 from datetime import datetime, timedelta
 import mlflow
 from airflow.operators.python_operator import PythonOperator
+import requests
 
 sys.path.append(
   os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -19,6 +20,17 @@ def generate_experiment_name(mlflow_uri,**context):
     mlflow.set_tracking_uri(mlflow_uri)
     experiment_name = get_next_deployment_experiment_name()
     context['ti'].xcom_push(key='experiment_name', value=experiment_name)
+
+
+def request_model_loading(**context):
+    api_url = "http://api-server:8000/model_upload"  # 도커 네트워크 상에서 접근 가능
+    res = requests.get(api_url)
+    
+    if res.status_code != 200:
+        raise Exception(f"Model load failed: {res.text}")
+    
+    print("Model load response:", res.json())
+
 
 
 
@@ -132,6 +144,13 @@ with DAG(
         network_mode='mlops-net'
     )
 
-    experiment_name >> preprocess >> train_prophet >> evaluate_prophet >> model_select
-    experiment_name >> preprocess >> train_sarimax >> evaluate_sarimax >> model_select
+    request_model_loading = PythonOperator(
+        task_id='request_model_loading',
+        python_callable=request_model_loading,
+        provide_context=True
+    )
 
+
+
+    experiment_name >> preprocess >> train_prophet >> evaluate_prophet >> model_select >> request_model_loading
+    experiment_name >> preprocess >> train_sarimax >> evaluate_sarimax >> model_select >> request_model_loading

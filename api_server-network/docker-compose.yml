@@ -18,6 +18,10 @@ services:
     environment:
       - INFERENCE_URL=http://inference-server:8001
       - DB_URL=postgresql://user:password@serving-db:5432/serving
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - AWS_REGION=${AWS_DEFAULT_REGION}
+      - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
 
   inference-server:
     build:
@@ -50,6 +54,19 @@ services:
       - serving-net
     ports:
       - "5433:5432"  # 호스트 충돌 방지를 위해 5433으로 노출 (원하면 변경 가능)
+
+  streamlit:
+    build:
+      context: ./streamlit
+    container_name: streamlit
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./streamlit/src:/app/src  # 코드 공유
+    networks:
+      - serving-net
+    depends_on:
+      - api-server
 
 networks:
   serving-net:

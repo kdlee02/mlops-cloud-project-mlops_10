@@ -22,7 +22,7 @@ def train_prophet(
     df = pd.read_csv(train_csv, parse_dates=['time'])
     data = df[['time', 'temp']].copy()
     data.columns = ['ds', 'y']
-    with mlflow.start_run():
+    with mlflow.start_run() as run:
 
         mlflow.log_param("seasonality_mode", seasonality_mode)
         mlflow.log_param("daily_seasonality", daily_seasonality)
@@ -63,7 +63,7 @@ def train_sarimax(
 
     ic(f"Training SARIMAX model with order={order} and seasonal_order={seasonal_order}")
 
-    with mlflow.start_run():
+    with mlflow.start_run() as run:
         mlflow.log_param("order", order)
         mlflow.log_param("seasonal_order", seasonal_order)
         mlflow.log_param("enforce_stationarity", enforce_stationarity)
