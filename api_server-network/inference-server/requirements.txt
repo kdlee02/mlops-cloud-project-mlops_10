@@ -9,5 +9,4 @@ boto3
 statsmodels
 pandas==2.2.3
 prophet==1.1.7
-numpy==2.2.6
-curl
+numpy==2.2.4

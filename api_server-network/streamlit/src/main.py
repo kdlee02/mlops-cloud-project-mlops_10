@@ -5,10 +5,11 @@ import requests
 
 st.set_page_config(page_title="Temperature Forecast", layout="wide")
 st.title("🌡️ Temperature Forecast Visualization")
-@st.cache_data
+
 def load_data():
     try:
         response = requests.get("http://api-server:8000/forecast")
+        print(response.json())
         if response.status_code == 200:
             data = response.json()
             data = pl.DataFrame(data)

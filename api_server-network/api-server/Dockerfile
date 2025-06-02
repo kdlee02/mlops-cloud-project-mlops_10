@@ -9,6 +9,7 @@ COPY requirements.txt .
 
 # 패키지 설치
 RUN pip install --upgrade pip && pip install -r requirements.txt
+RUN apt-get update && apt-get install -y curl
 
 # 전체 코드 복사 (볼륨 마운트 시 실제 사용되진 않음, fallback용)
 COPY . .
