@@ -1,0 +1,27 @@
+name: Build and Test with Docker Compose
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Compose
+        uses: docker/setup-compose-action@v3
+
+      - name: Build and start services
+        run: docker compose up -d --build
+
+      - name: Test services (optional)
+        run: |
+          docker compose exec airflow-webserver airflow version
+
+
+      - name: Stop and clean up
+        if: always()
+        run: docker compose down
