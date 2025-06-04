@@ -12,7 +12,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Set up Docker Compose
-        uses: docker/setup-compose-action@v3
+        uses: docker/setup-compose-action@v2
+        # 또는 최신 버전 확인 후 입력
 
       - name: Build and start services
         run: docker compose up -d --build
