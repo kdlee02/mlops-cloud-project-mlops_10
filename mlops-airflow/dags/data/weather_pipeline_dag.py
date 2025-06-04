@@ -1,6 +1,7 @@
 from airflow import DAG
 from airflow.operators.python_operator import PythonOperator
-from datetime import datetime
+from meteostat import Point, Hourly
+from datetime import datetime, timedelta
 import pandas as pd
 import os
 import boto3
@@ -10,18 +11,18 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 # 경로 설정
-LOCAL_CSV_PATH = "/opt/airflow/datas/tokyo_weather.csv"
-PROCESSED_PATH = "/opt/airflow/datas/processed/"
+PROCESSED_PATH = "/opt/airflow/datas"
 PROCESSED_FILE = os.path.join(PROCESSED_PATH, "tokyo_weather_processed.csv")
 
-# 전처리 함수 정의
-def load_and_process_csv():
-    print(f"✅ Loading CSV from {LOCAL_CSV_PATH}")
-    df = pd.read_csv(LOCAL_CSV_PATH)
-    os.makedirs(PROCESSED_PATH, exist_ok=True)
-    print(f"✅ Loading CSV from {LOCAL_CSV_PATH}")
+def collect_tokyo_weather():
+    tokyo = Point(35.6762, 139.6503, 70)
+    end_date = datetime.now() - timedelta(days=1)
+    start_date = end_date - timedelta(days=365 * 3)
+    data = Hourly(tokyo, start_date, end_date).fetch()
+    df = data.reset_index()
+    print(len(df))
     df.to_csv(PROCESSED_FILE, index=False)
-    print(f"✅ Processed CSV saved to {PROCESSED_FILE}")
+    
 
 # S3 업로드 함수 정의
 def upload_to_s3():
@@ -42,21 +43,21 @@ def upload_to_s3():
 # DAG 정의
 default_args = {
     'owner': 'airflow',
-    'start_date': datetime(2025, 5, 26),
+    'start_date': datetime.now() - timedelta(days=1),
     'retries': 0,  # ✅ 재시도 없음
 }
 
 with DAG(
-    dag_id='csv_ingest_pipeline',
+    dag_id='weather_data_collection_pipeline',
     default_args=default_args,
-    schedule_interval=None,
+    schedule_interval='@daily',
     catchup=False,
-    description='CSV 파일을 읽어 전처리 후 저장하는 DAG'
+    description='Meteostat를 사용하여 도쿄 날씨 데이터를 수집하고 CSV 파일로 s3에 저장하는 DAG'
 ) as dag:
 
-    csv_ingest_task = PythonOperator(
-        task_id='load_and_process_csv',
-        python_callable=load_and_process_csv,
+    collect_weather_task = PythonOperator(
+        task_id='collect_tokyo_weather',
+        python_callable=collect_tokyo_weather,
     )
 
     upload_task = PythonOperator(
@@ -64,4 +65,4 @@ with DAG(
         python_callable=upload_to_s3,
     )
 
-    csv_ingest_task >> upload_task
+    collect_weather_task >> upload_task

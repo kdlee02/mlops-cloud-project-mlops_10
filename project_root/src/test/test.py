@@ -4,9 +4,15 @@ from datetime import timedelta
 from tqdm import tqdm
 from icecream import ic
 from src.utils.utils import dataset_dir
+from datetime import datetime, timedelta
 
 def predict_future(model, last_date, days=7, save_name='future_temperature.csv'):
-    future_dates = pd.date_range(start=last_date + timedelta(hours=1), periods=days * 24, freq='H')
+    # 🔽 1. 모델 경로일 경우 로드
+    if isinstance(model, str):
+        model = joblib.load(model)
+    if isinstance(last_date, str):
+        last_date = datetime.strptime(last_date, "%Y-%m-%d")
+    future_dates = pd.date_range(start=last_date + timedelta(hours=1), periods=days * 24, freq='h')
     future_df = pd.DataFrame({'ds': future_dates})
     ic(f"Predicting {len(future_dates)} future time points")
     forecast = model.predict(future_df)

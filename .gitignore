@@ -4,3 +4,6 @@ mlops-mlflow/log
 mlops-mlflow/model
 __pycache__/
 *.pyc
+project_root/dataset
+project_root/models
+.idea

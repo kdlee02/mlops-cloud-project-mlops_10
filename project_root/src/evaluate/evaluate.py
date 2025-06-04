@@ -2,6 +2,8 @@ import pandas as pd
 import joblib
 from sklearn.metrics import mean_absolute_error, mean_squared_error
 from icecream import ic
+import numpy as np
+import mlflow
 
 def evaluate_prophet(model_path, test_csv, run_id):
     model = joblib.load(model_path)
@@ -10,7 +12,8 @@ def evaluate_prophet(model_path, test_csv, run_id):
     test_data.columns = ['ds', 'y']
     forecast = model.predict(test_data[['ds']])
     mae = mean_absolute_error(test_data['y'], forecast['yhat'])
-    rmse = mean_squared_error(test_data['y'], forecast['yhat'], squared=False)
+    #rmse = mean_squared_error(test_data['y'], forecast['yhat'], squared=False)
+    rmse = np.sqrt(mean_squared_error(test_data['y'], forecast['yhat']))
     ic(mae, rmse)
     with mlflow.start_run(run_id=run_id):
         mlflow.log_metric("mae", mae)

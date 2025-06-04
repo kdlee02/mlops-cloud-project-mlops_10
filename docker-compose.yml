@@ -28,7 +28,6 @@ services:
       - "8080:8080"
     volumes:
       - ./mlops-airflow/dags:/opt/airflow/dags
-      - ./mlops-airflow/datas:/opt/airflow/datas
       - ./mlops-airflow/plugins:/opt/airflow/plugins
       - /var/run/docker.sock:/var/run/docker.sock
     command: webserver
@@ -46,7 +45,6 @@ services:
       AIRFLOW__WEBSERVER__SECRET_KEY: "super_secret_key_1234"
     volumes:
       - ./mlops-airflow/dags:/opt/airflow/dags
-      - ./mlops-airflow/datas:/opt/airflow/datas
       - ./mlops-airflow/plugins:/opt/airflow/plugins
       - /var/run/docker.sock:/var/run/docker.sock
     command: scheduler
