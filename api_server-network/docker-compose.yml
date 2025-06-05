@@ -22,6 +22,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
       - AWS_REGION=${AWS_DEFAULT_REGION}
       - AWS_DEFAULT_REGION=${AWS_DEFAULT_REGION}
+    command: uvicorn src.main:app --host 0.0.0.0 --port 8000 --reload # 실험하고 삭제제
 
   inference-server:
     build:
