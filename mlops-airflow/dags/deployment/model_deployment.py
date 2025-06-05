@@ -53,9 +53,9 @@ with DAG(
     )
 
     COMMON_ENV = {
-      "AWS_ACCESS_KEY_ID": Variable.get("AWS_ACCESS_KEY_ID"),
-      "AWS_SECRET_ACCESS_KEY": Variable.get("AWS_SECRET_ACCESS_KEY"),
-      "AWS_DEFAULT_REGION": "ap-northeast-2",
+      "AWS_ACCESS_KEY_ID": os.getenv("AWS_ACCESS_KEY_ID"),
+      "AWS_SECRET_ACCESS_KEY": os.getenv("AWS_SECRET_ACCESS_KEY"),
+      "AWS_DEFAULT_REGION": os.getenv("AWS_DEFAULT_REGION"),
       "MLFLOW_TRACKING_URI": mlflow_uri,
       "MLFLOW_ARTIFACT_LOCATION": f"s3://mlops-weather/data/deploy_volume/model",
       "API_URL": api_url
