@@ -44,9 +44,9 @@ def run_inference(request: ModelUploadRequest):
     exp_name = request.exp_name
     run_id = request.run_id
     pkl_file = request.pkl_file
-    
+
     BUCKET_NAME = "mlops-weather"
-    MODEL_S3_KEY = f"data/deploy_volume/model/{exp_name}/{run_id}/artifacts/model/{pkl_file}"
+    MODEL_S3_KEY = f"data/deploy_volume/model/{exp_name}/{run_id}/artifacts/model/artifacts/{pkl_file}"
     LOCAL_MODEL_PATH = os.path.join("model", pkl_file)
 
     try:
@@ -57,7 +57,7 @@ def run_inference(request: ModelUploadRequest):
         model = joblib.load(LOCAL_MODEL_PATH)
         future = pd.date_range(start=pd.Timestamp.now(), periods=168, freq="H")
         df_future = pd.DataFrame({"ds": future})
-        forecast = model.predict(model_input=df_future, context={})
+        forecast = model.predict(df_future)
         result = forecast[["ds", "yhat"]].copy()
         result.columns = ["datetime", "pred_temp"]
 

@@ -28,9 +28,9 @@ def collect_tokyo_weather():
 def upload_to_s3():
     s3 = boto3.client(
         's3',
-        aws_access_key_id=Variable.get("AWS_ACCESS_KEY_ID"),
-        aws_secret_access_key=Variable.get("AWS_SECRET_ACCESS_KEY"),
-        region_name="ap-northeast-2"  # 서울 리전 등으로 설정
+        aws_access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
+        aws_secret_access_key=os.getenv("AWS_SECRET_ACCESS_KEY"),
+        region_name=os.getenv("AWS_DEFAULT_REGION")
     )
     bucket_name = "mlops-weather"
     object_name = "data/dataset/tokyo_weather_processed.csv"
