@@ -314,6 +314,7 @@ jobs:
   build-and-deploy:
     if: github.repository == 'AIBootcamp13/mlops-cloud-project-mlops_10'
     runs-on: ubuntu-latest
+    needs: [test, integration-test]
 
     steps:
       - name: Checkout
