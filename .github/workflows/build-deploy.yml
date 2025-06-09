@@ -18,6 +18,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 전체 히스토리 가져오기
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -61,13 +63,29 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
+    - name: Debug environment before Codecov
+      run: |
+        echo "=== Git Information ==="
+        git log --oneline -5
+        echo "=== Coverage File Check ==="
+        ls -la ./project_root/coverage.xml || echo "Coverage file not found"
+        echo "=== Environment Variables ==="
+        echo "GITHUB_REF: $GITHUB_REF"
+        echo "GITHUB_SHA: $GITHUB_SHA"
+        echo "GITHUB_REPOSITORY: $GITHUB_REPOSITORY"
+
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./project_root/coverage.xml
         flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+        name: codecov-umbrella-${{ matrix.python-version }}
+        # 공용 레포에서는 CODECOV_TOKEN이 설정되어야 함
+        token: ${{ secrets.CODECOV_TOKEN }}
+        fail_ci_if_error: false  # 토큰이 없어도 CI가 실패하지 않도록
+        verbose: true
+        override_branch: main
+        override_commit: ${{ github.sha }}
 
   integration-test:
     runs-on: ubuntu-latest
@@ -310,40 +328,43 @@ jobs:
             print('First few predictions:')
             print(forecast_df.head())
         "
-  # docker 접근 단계 시작
+
+  # Docker 빌드 및 배포 (공용 레포에서만 실행)
   build-and-deploy:
-      # if: github.repository == 'AIBootcamp13/mlops-cloud-project-mlops_10'  # 임시로 주석처리
-      runs-on: ubuntu-latest
-      needs: [test, integration-test]
+    runs-on: ubuntu-latest
+    needs: [test, integration-test]
+    # 공용 레포에서만 실행되도록 조건 추가
+    if: github.repository == 'AIBootcamp13/mlops-cloud-project-mlops_10' && (github.event_name == 'push' && github.ref == 'refs/heads/main')
 
-      steps:
-        - name: Checkout
-          uses: actions/checkout@v4
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-        - name: Debug repository and secrets
-          run: |
-            echo "Current repository: ${{ github.repository }}"
-            echo "DOCKER_USERNAME exists: ${{ secrets.DOCKER_USERNAME != '' }}"
-            echo "DOCKER_PASSWORD exists: ${{ secrets.DOCKER_PASSWORD != '' }}"
+      - name: Debug repository and secrets
+        run: |
+          echo "Current repository: ${{ github.repository }}"
+          echo "DOCKER_USERNAME exists: ${{ secrets.DOCKER_USERNAME != '' }}"
+          echo "DOCKER_PASSWORD exists: ${{ secrets.DOCKER_PASSWORD != '' }}"
 
-        - name: Set up Docker Buildx
-          uses: docker/setup-buildx-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-        - name: Login to DockerHub
-          uses: docker/login-action@v3
-          with:
-            username: ${{ secrets.DOCKER_USERNAME }}
-            password: ${{ secrets.DOCKER_PASSWORD }}
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
 
-        - name: Build and push
-          uses: docker/build-push-action@v5
-          with:
-            context: ./project_root
-            push: true
-            tags: ost0451/mlops_dev:latest
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: ./project_root
+          push: true
+          # 공용 레포에 맞는 Docker 이미지 태그로 변경 (필요시)
+          tags: ${{ secrets.DOCKER_USERNAME }}/mlops_project:latest
 
-        - name: Build completion notification
-          run: |
-            echo "🚀 Docker image built and pushed successfully!"
-            echo "🔗 Docker Hub: https://hub.docker.com/r/ost0451/mlops_dev"
-            echo "✅ CI/CD Pipeline completed successfully!"
+      - name: Build completion notification
+        run: |
+          echo "🚀 Docker image built and pushed successfully!"
+          echo "🔗 Docker Hub: https://hub.docker.com/r/${{ secrets.DOCKER_USERNAME }}/mlops_project"
+          echo "✅ CI/CD Pipeline completed successfully!"

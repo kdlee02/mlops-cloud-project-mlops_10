@@ -1,5 +1,11 @@
 # ☁️ MLOps Cloud Project - Weather Forecast Pipeline
 
+## 🚀 CI/CD Codecov 커버리지
+
+[![codecov](https://codecov.io/gh/ohseungtae/mlops-cloud-project-mlops_10/graph/badge.svg?token=E79MC0HJMB)](https://codecov.io/gh/ohseungtae/mlops-cloud-project-mlops_10)
+[![CI/CD Pipeline](https://github.com/ohseungtae/mlops-cloud-project-mlops_10/actions/workflows/build-deploy.yml/badge.svg)](https://github.com/ohseungtae/mlops-cloud-project-mlops_10/actions/workflows/build-deploy.yml)
+
+
 <br>
 
 ## 💻 프로젝트 소개 & 🔨 개발 환경 및 기술 스택
