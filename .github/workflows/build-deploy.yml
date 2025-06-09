@@ -310,7 +310,7 @@ jobs:
             print('First few predictions:')
             print(forecast_df.head())
         "
-
+  # docker 접근 단계 시작
   build-and-deploy:
     if: github.repository == 'AIBootcamp13/mlops-cloud-project-mlops_10'
     runs-on: ubuntu-latest
