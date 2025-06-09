@@ -2,8 +2,8 @@
 
 ## 🚀 CI/CD Codecov 커버리지
 
-[![codecov](https://codecov.io/gh/ohseungtae/mlops-cloud-project-mlops_10/graph/badge.svg?token=E79MC0HJMB)](https://codecov.io/gh/ohseungtae/mlops-cloud-project-mlops_10)
-[![CI/CD Pipeline](https://github.com/ohseungtae/mlops-cloud-project-mlops_10/actions/workflows/build-deploy.yml/badge.svg)](https://github.com/ohseungtae/mlops-cloud-project-mlops_10/actions/workflows/build-deploy.yml)
+[![codecov](https://codecov.io/gh/AIBootcamp13/mlops-cloud-project-mlops_10/graph/badge.svg?token=CL43H25J3S)](https://codecov.io/gh/AIBootcamp13/mlops-cloud-project-mlops_10)
+[![CI/CD Pipeline](https://github.com/AIBootcamp13/mlops-cloud-project-mlops_10/actions/workflows/build-deploy.yml/badge.svg)](https://github.com/AIBootcamp13/mlops-cloud-project-mlops_10/actions/workflows/build-deploy.yml)
 
 
 <br>
