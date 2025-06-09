@@ -334,7 +334,7 @@ jobs:
         with:
           context: ./project_root
           push: true
-          tags: jbreal/mlops-deployment:latest
+          tags: ost0451/mlops_dev:latest
 
       - name: Build completion notification
         run: |
