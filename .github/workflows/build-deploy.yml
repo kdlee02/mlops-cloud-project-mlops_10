@@ -68,6 +68,8 @@ jobs:
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+        verbose: true  # 디버깅용 (선택사항)
 
   integration-test:
     runs-on: ubuntu-latest
