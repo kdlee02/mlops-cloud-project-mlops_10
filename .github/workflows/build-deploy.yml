@@ -18,6 +18,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # 전체 히스토리 가져오기
 
     - name: Set up Python ${{ matrix.python-version }}
       uses: actions/setup-python@v4
@@ -61,15 +63,27 @@ jobs:
         flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
         flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
 
+    - name: Debug environment before Codecov
+      run: |
+        echo "=== Git Information ==="
+        git log --oneline -5
+        echo "=== Coverage File Check ==="
+        ls -la ./project_root/coverage.xml || echo "Coverage file not found"
+        echo "=== Environment Variables ==="
+        echo "GITHUB_REF: $GITHUB_REF"
+        echo "GITHUB_SHA: $GITHUB_SHA"
+
     - name: Upload coverage to Codecov
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       with:
         file: ./project_root/coverage.xml
         flags: unittests
-        name: codecov-umbrella
-        fail_ci_if_error: false
+        name: codecov-umbrella-${{ matrix.python-version }}
         token: ${{ secrets.CODECOV_TOKEN }}
-        verbose: true  # 디버깅용 (선택사항)
+        fail_ci_if_error: false
+        verbose: true
+        override_branch: main
+        override_commit: ${{ github.sha }}
 
   integration-test:
     runs-on: ubuntu-latest
