@@ -22,10 +22,10 @@ This project implements a full **MLOps pipeline** for time-series **weather fore
 
 ## 👨‍👩‍👦‍👦 팀 구성원
 
-| ![오승태](https://avatars.githubusercontent.com/u/156163982?v=4) | ![김정빈](https://avatars.githubusercontent.com/u/156163982?v=4) | ![이경도](https://avatars.githubusercontent.com/u/156163982?v=4) | ![황준엽](https://avatars.githubusercontent.com/u/156163982?v=4) |  
-| :--------------------------------------------------------------: | :--------------------------------------------------------------: | :--------------------------------------------------------------: | :--------------------------------------------------------------: |
-|            [오승태](https://github.com/UpstageAILab)             |            [김정빈](https://github.com/UpstageAILab)             |            [이경도](https://github.com/UpstageAILab)             |                  [황준엽](https://github.com/UpstageAILab)             |
-|                            ML 모델 구축 & CI CD 담당                              |                          Docke repo 구축 & 배포 파이프라인 자동화 & 인프라 구축                            |                            ML Engineering & Monitoring & Streamlit                             |                            ML 모델 구축 & 추론 API 코드 설계                            |           
+| <img src="https://github.com/ohseungtae.png" width="120"/> | <img src="https://github.com/JBreals.png" width="120"/> | <img src="https://github.com/kdlee02.png" width="120"/> | <img src="https://github.com/hwang1999.png" width="120"/> | 
+| :--------------------------------------------------------: | :------------------------------------------------------: | :------------------------------------------------------: | :--------------------------------------------------------: | 
+| [오승태](https://github.com/ohseungtae)                   | [김정빈](https://github.com/JBreals)                   | [이경도](https://github.com/kdlee02)                   | [황준엽](https://github.com/hwang1999)                   |
+| ML 모델 구축 & CI CD 담당                                   |     Docke repo 구축 & <br>배포 파이프라인 자동화 & <br>인프라 구축                         |      ML Engineering & <br>Monitoring & Streamlit                           |            ML 모델 구축 & <br>추론 API 코드 설계                     |     
 
 
 <br>
