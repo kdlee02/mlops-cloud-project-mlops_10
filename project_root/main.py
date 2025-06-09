@@ -2,6 +2,7 @@ import fire
 import pandas as pd
 from icecream import ic
 
+# src디렉토리에서 불러오는 모듈들
 from src.data_loader.data_loader import collect_tokyo_weather
 from src.preprocess.preprocess import load_and_split
 from src.train.train import train_prophet, train_sarimax

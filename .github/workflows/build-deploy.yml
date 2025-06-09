@@ -310,36 +310,40 @@ jobs:
             print('First few predictions:')
             print(forecast_df.head())
         "
-
+  # docker 접근 단계 시작
   build-and-deploy:
-    if: github.repository == 'AIBootcamp13/mlops-cloud-project-mlops_10'
-    runs-on: ubuntu-latest
-    needs: [test, integration-test]
+      # if: github.repository == 'AIBootcamp13/mlops-cloud-project-mlops_10'  # 임시로 주석처리
+      runs-on: ubuntu-latest
+      needs: [test, integration-test]
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      steps:
+        - name: Checkout
+          uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        - name: Debug repository and secrets
+          run: |
+            echo "Current repository: ${{ github.repository }}"
+            echo "DOCKER_USERNAME exists: ${{ secrets.DOCKER_USERNAME != '' }}"
+            echo "DOCKER_PASSWORD exists: ${{ secrets.DOCKER_PASSWORD != '' }}"
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_PASSWORD }}
+        - name: Set up Docker Buildx
+          uses: docker/setup-buildx-action@v3
 
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: ./project_root
-          push: true
-          tags: jbreal/mlops-deployment:latest
+        - name: Login to DockerHub
+          uses: docker/login-action@v3
+          with:
+            username: ${{ secrets.DOCKER_USERNAME }}
+            password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build completion notification
-        run: |
-          echo "🚀 Docker image built and pushed successfully!"
-          echo "📦 Image tags: ${{ steps.meta.outputs.tags }}"
-          echo "🔗 Docker Hub: https://hub.docker.com/r/ost0451/mlops_dev"
-          #echo "📁 Deployment artifacts uploaded and ready!"
-          echo "✅ CI/CD Pipeline completed successfully!"
+        - name: Build and push
+          uses: docker/build-push-action@v5
+          with:
+            context: ./project_root
+            push: true
+            tags: ost0451/mlops_dev:latest
+
+        - name: Build completion notification
+          run: |
+            echo "🚀 Docker image built and pushed successfully!"
+            echo "🔗 Docker Hub: https://hub.docker.com/r/ost0451/mlops_dev"
+            echo "✅ CI/CD Pipeline completed successfully!"
