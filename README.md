@@ -1,4 +1,5 @@
 # ☁️ MLOps Cloud Project - Weather Forecast Pipeline
+![image](https://github.com/user-attachments/assets/344237cb-4c4c-49e8-8226-7a7d8d3571ce)
 
 ## 🚀 CI/CD Codecov 커버리지
 
